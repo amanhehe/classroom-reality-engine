@@ -56,7 +56,9 @@ function Index() {
   const [reading, setReading] = useState(false);
   const [activeNav, setActiveNav] = useState("classroom");
 
-  const speaker = useMemo(() => messages[messages.length - 1], [messages]);
+  const speaker = useMemo(() => messages[messages.length - 1] ?? initialConversation[0], [messages]);
+
+  if (!speaker) return null;
 
   function sendAnswer() {
     const message = answer.trim();
