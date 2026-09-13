@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   BrainCircuit,
@@ -11,12 +11,14 @@ import {
   Mic,
   MoreHorizontal,
   Play,
+  Pause,
   Send,
   Settings,
   Sparkles,
   Square,
   Volume2,
   Waves,
+  X,
 } from "lucide-react";
 import classroomImage from "../assets/realistic-classroom.jpg";
 import { Button } from "../components/ui/button";
@@ -55,17 +57,26 @@ function Index() {
   const [micOn, setMicOn] = useState(false);
   const [reading, setReading] = useState(false);
   const [activeNav, setActiveNav] = useState("classroom");
+  const [speakerIndex, setSpeakerIndex] = useState(0);
+  const [lessonPlaying, setLessonPlaying] = useState(false);
+  const speechSession = useRef(0);
 
   const speaker = useMemo<Conversation>(
-    () => messages[messages.length - 1] ?? {
+    () => messages[speakerIndex] ?? messages[0] ?? {
       id: 0,
       name: "Ms. Rivera",
       role: "Teacher",
       message: "Welcome to class.",
       tone: "teacher",
     },
-    [messages],
+    [messages, speakerIndex],
   );
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    };
+  }, []);
 
   function sendAnswer() {
     const message = answer.trim();
@@ -74,14 +85,60 @@ function Index() {
       ...current,
       { id: Date.now(), name: "You", role: "Student", message, tone: "learner" },
     ]);
+    setSpeakerIndex(messages.length);
     setAnswer("");
   }
 
-  function readCurrent() {
-    setReading((value) => !value);
+  function speakMessage(index: number, continueLesson = false) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const selected = messages[index];
+    if (!selected) return;
+    const session = speechSession.current;
     window.speechSynthesis.cancel();
-    if (!reading) window.speechSynthesis.speak(new SpeechSynthesisUtterance(speaker.message));
+    setSpeakerIndex(index);
+    setReading(true);
+    const utterance = new SpeechSynthesisUtterance(selected.message);
+    utterance.rate = selected.tone === "teacher" ? 0.92 : selected.tone === "advanced" ? 1.02 : 0.97;
+    utterance.pitch = selected.tone === "teacher" ? 1.08 : selected.tone === "basic" ? 1.18 : 0.94;
+    utterance.onend = () => {
+      if (speechSession.current !== session) return;
+      setReading(false);
+      if (continueLesson && index < messages.length - 1) {
+        window.setTimeout(() => speakMessage(index + 1, true), 450);
+      } else {
+        setLessonPlaying(false);
+      }
+    };
+    utterance.onerror = () => {
+      setReading(false);
+      setLessonPlaying(false);
+    };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function toggleCurrentSpeech() {
+    if (reading) {
+      speechSession.current += 1;
+      window.speechSynthesis.cancel();
+      setReading(false);
+      setLessonPlaying(false);
+      return;
+    }
+    speechSession.current += 1;
+    speakMessage(speakerIndex);
+  }
+
+  function toggleLesson() {
+    if (lessonPlaying) {
+      speechSession.current += 1;
+      window.speechSynthesis.cancel();
+      setLessonPlaying(false);
+      setReading(false);
+      return;
+    }
+    speechSession.current += 1;
+    setLessonPlaying(true);
+    speakMessage(0, true);
   }
 
   return (
@@ -95,6 +152,8 @@ function Index() {
       />
       <div className="scene-shade" />
       <div className="sun-wash" />
+      <div className="scene-depth" aria-hidden="true" />
+      <div className="dust-field" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
 
       <nav className="side-rail" aria-label="Primary navigation">
         <div className="brand-mark" aria-label="AI KYRO">K</div>
@@ -118,13 +177,22 @@ function Index() {
           </Button>
         ))}
         <div className="rail-spacer" />
-        <Button variant="ghost" size="icon" className="rail-button" aria-label="Settings" title="Settings">
+        <Button variant={activeNav === "settings" ? "accent" : "ghost"} size="icon" className="rail-button" onClick={() => setActiveNav("settings")} aria-label="Settings" title="Settings">
           <Settings size={18} />
         </Button>
         <button className="student-avatar" aria-label="Student profile">K</button>
       </nav>
 
       <section className="lesson-stage" aria-label="Live classroom scene">
+        {activeNav !== "classroom" && (
+          <section className="nav-view glass-panel" aria-label={`${activeNav} view`}>
+            <header><div><small>AI KYRO</small><h2>{activeNav === "home" ? "Good morning, K" : activeNav === "library" ? "Lesson library" : activeNav === "progress" ? "Learning progress" : "Classroom settings"}</h2></div><Button variant="glass" size="icon" onClick={() => setActiveNav("classroom")} aria-label="Close view"><X size={18} /></Button></header>
+            {activeNav === "home" && <div className="nav-view-grid"><Button variant="glass" onClick={() => setActiveNav("classroom")}><strong>Resume live class</strong><span>Conservation of Energy · 12 students</span></Button><div><strong>Next lesson</strong><span>Forces and motion · Tomorrow, 10:00</span></div></div>}
+            {activeNav === "library" && <div className="nav-view-list">{["Energy & Work", "Forces & Motion", "Waves & Sound"].map((item, index) => <Button variant="glass" key={item}><span>0{index + 1}</span><strong>{item}</strong><small>{index + 4} lessons</small><ChevronRight size={17} /></Button>)}</div>}
+            {activeNav === "progress" && <div className="progress-view"><div className="progress-ring"><strong>82%</strong><span>mastery</span></div><div><strong>Physics foundations</strong><span>8 of 10 concepts complete</span><div className="progress-line"><i /></div></div></div>}
+            {activeNav === "settings" && <div className="settings-view"><label><span>Classroom voice<strong>Natural voices for each speaker</strong></span><input type="checkbox" defaultChecked /></label><label><span>Scene movement<strong>Camera, light, and atmosphere</strong></span><input type="checkbox" defaultChecked /></label><label><span>Live captions<strong>Show every spoken statement</strong></span><input type="checkbox" defaultChecked /></label></div>}
+          </section>
+        )}
         <header className="lesson-header glass-panel">
           <div className="live-dot"><span /></div>
           <div>
@@ -154,7 +222,7 @@ function Index() {
         </div>
 
         <div className="lesson-controls glass-panel">
-          <Button variant={reading ? "accent" : "glass"} size="icon" onClick={readCurrent} aria-label="Read current message aloud" title="Read aloud">
+          <Button variant={reading ? "accent" : "glass"} size="icon" onClick={toggleCurrentSpeech} aria-label={reading ? "Stop reading" : "Read current message aloud"} title={reading ? "Stop reading" : "Read aloud"}>
             <Volume2 size={17} />
           </Button>
           <Button variant={micOn ? "accent" : "glass"} size="icon" onClick={() => setMicOn((value) => !value)} aria-label="Toggle microphone" title="Microphone">
@@ -165,7 +233,7 @@ function Index() {
             <strong>00:15</strong>
           </div>
           <div className="timer-track"><span /></div>
-          <Button variant="glass" size="icon" aria-label="Resume lesson" title="Resume lesson"><Play size={16} /></Button>
+          <Button variant={lessonPlaying ? "accent" : "glass"} size="icon" onClick={toggleLesson} aria-label={lessonPlaying ? "Pause lesson" : "Play lesson from beginning"} title={lessonPlaying ? "Pause lesson" : "Play lesson"}>{lessonPlaying ? <Pause size={16} /> : <Play size={16} />}</Button>
         </div>
       </section>
 
@@ -177,12 +245,13 @@ function Index() {
 
         <div className="conversation-list" aria-live="polite">
           {messages.map((message, index) => (
-            <article key={message.id} className={`conversation-message tone-${message.tone} ${index === messages.length - 1 ? "current" : ""}`}>
+            <article key={message.id} className={`conversation-message tone-${message.tone} ${index === speakerIndex ? "current" : ""}`}>
               <div className="message-avatar">{message.name.slice(0, 1)}</div>
               <div>
                 <header><strong>{message.name}</strong><span>{message.role}</span><time>Now</time></header>
                 <p>{message.message}</p>
               </div>
+              <Button variant="ghost" size="icon" className="message-audio" onClick={() => { speechSession.current += 1; speakMessage(index); }} aria-label={`Hear ${message.name}'s statement`} title={`Hear ${message.name}`}><Volume2 size={15} /></Button>
             </article>
           ))}
         </div>
