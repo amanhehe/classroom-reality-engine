@@ -124,6 +124,7 @@ function Index() {
       setLessonPlaying(false);
       return;
     }
+    speechSession.current += 1;
     speakMessage(speakerIndex);
   }
 
@@ -186,8 +187,8 @@ function Index() {
         {activeNav !== "classroom" && (
           <section className="nav-view glass-panel" aria-label={`${activeNav} view`}>
             <header><div><small>AI KYRO</small><h2>{activeNav === "home" ? "Good morning, K" : activeNav === "library" ? "Lesson library" : activeNav === "progress" ? "Learning progress" : "Classroom settings"}</h2></div><Button variant="glass" size="icon" onClick={() => setActiveNav("classroom")} aria-label="Close view"><X size={18} /></Button></header>
-            {activeNav === "home" && <div className="nav-view-grid"><button onClick={() => setActiveNav("classroom")}><strong>Resume live class</strong><span>Conservation of Energy · 12 students</span></button><div><strong>Next lesson</strong><span>Forces and motion · Tomorrow, 10:00</span></div></div>}
-            {activeNav === "library" && <div className="nav-view-list">{["Energy & Work", "Forces & Motion", "Waves & Sound"].map((item, index) => <button key={item}><span>0{index + 1}</span><strong>{item}</strong><small>{index + 4} lessons</small><ChevronRight size={17} /></button>)}</div>}
+            {activeNav === "home" && <div className="nav-view-grid"><Button variant="glass" onClick={() => setActiveNav("classroom")}><strong>Resume live class</strong><span>Conservation of Energy · 12 students</span></Button><div><strong>Next lesson</strong><span>Forces and motion · Tomorrow, 10:00</span></div></div>}
+            {activeNav === "library" && <div className="nav-view-list">{["Energy & Work", "Forces & Motion", "Waves & Sound"].map((item, index) => <Button variant="glass" key={item}><span>0{index + 1}</span><strong>{item}</strong><small>{index + 4} lessons</small><ChevronRight size={17} /></Button>)}</div>}
             {activeNav === "progress" && <div className="progress-view"><div className="progress-ring"><strong>82%</strong><span>mastery</span></div><div><strong>Physics foundations</strong><span>8 of 10 concepts complete</span><div className="progress-line"><i /></div></div></div>}
             {activeNav === "settings" && <div className="settings-view"><label><span>Classroom voice<strong>Natural voices for each speaker</strong></span><input type="checkbox" defaultChecked /></label><label><span>Scene movement<strong>Camera, light, and atmosphere</strong></span><input type="checkbox" defaultChecked /></label><label><span>Live captions<strong>Show every spoken statement</strong></span><input type="checkbox" defaultChecked /></label></div>}
           </section>
@@ -250,7 +251,7 @@ function Index() {
                 <header><strong>{message.name}</strong><span>{message.role}</span><time>Now</time></header>
                 <p>{message.message}</p>
               </div>
-              <Button variant="ghost" size="icon" className="message-audio" onClick={() => speakMessage(index)} aria-label={`Hear ${message.name}'s statement`} title={`Hear ${message.name}`}><Volume2 size={15} /></Button>
+              <Button variant="ghost" size="icon" className="message-audio" onClick={() => { speechSession.current += 1; speakMessage(index); }} aria-label={`Hear ${message.name}'s statement`} title={`Hear ${message.name}`}><Volume2 size={15} /></Button>
             </article>
           ))}
         </div>
