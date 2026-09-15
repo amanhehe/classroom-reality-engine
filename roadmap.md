@@ -1,6 +1,11 @@
-# Roadmap
+# AI KYRO roadmap
 
-- [ ] Restore original AI KYRO pages as real routes: My Desk, Class Library, Quick Checks, Report Card, My Questions, Settings, About, Checkpoint
-- [ ] Make the classroom interactive again (animated figures, speech bubbles, blanks/hints, ask-a-question, per-speaker audio) instead of a static photo
-- [ ] Keep the class conversation panel only inside the classroom
-- [ ] Review uploaded HLD (ET617_HLD_Metacognitive_AI_Scaffold_v2_5_1.docx) and align features
+- [x] Mock data layer (modules, concepts, turns, checkpoints, quizzes, mastery)
+- [x] App shell with sidebar navigation
+- [x] Library, Quick Checks, Report Card, My Questions, Settings, About pages
+- [ ] Classroom route: animated figures, speech bubbles, blanks + hints, per-speaker voice
+- [ ] Class conversation panel ONLY inside a class (never on other pages)
+- [ ] AI: ask the class a question mid-lesson and get a real answer
+- [ ] AI: create your own module/topic — generated dialogue, blanks and checkpoint
+- [ ] Checkpoint + teach-back pages
+- [ ] My Desk dashboard (in-progress topics, points, pending quizzes)
