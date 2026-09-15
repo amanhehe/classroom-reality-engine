@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { Concept } from "./aikyro-data";
 
 export type AskedQuestion = {
   id: string;
@@ -13,6 +14,7 @@ export type LearnerState = {
   name: string;
   points: number;
   askedQuestions: AskedQuestion[];
+  customConcepts: Concept[];
   completedCheckpoints: Record<string, number>;
   answeredQuizzes: string[];
   settings: {
@@ -29,6 +31,7 @@ export const DEFAULT_STATE: LearnerState = {
   name: "Student",
   points: 120,
   askedQuestions: [],
+  customConcepts: [],
   completedCheckpoints: {},
   answeredQuizzes: [],
   settings: { readAloud: true, reducedDialogue: false, multimodal: false, captions: true },
@@ -48,9 +51,11 @@ function read(): LearnerState {
 /** Reads on mount only, so server and first client render always match. */
 export function useLearner() {
   const [state, setState] = useState<LearnerState>(DEFAULT_STATE);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setState(read());
+    setReady(true);
   }, []);
 
   const update = useCallback((next: Partial<LearnerState> | ((prev: LearnerState) => LearnerState)) => {
@@ -61,7 +66,10 @@ export function useLearner() {
     });
   }, []);
 
-  const addPoints = useCallback((amount: number) => update((prev) => ({ ...prev, points: prev.points + amount })), [update]);
+  const addPoints = useCallback(
+    (amount: number) => update((prev) => ({ ...prev, points: prev.points + amount })),
+    [update],
+  );
 
-  return { state, update, addPoints };
+  return { state, update, addPoints, ready };
 }
