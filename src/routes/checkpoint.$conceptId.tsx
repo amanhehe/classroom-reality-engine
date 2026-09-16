@@ -45,7 +45,8 @@ function CheckpointPage() {
     );
   }
 
-  const questions = concept.checkpoint;
+  const activeConcept = concept;
+  const questions = activeConcept.checkpoint;
   const score = questions.filter((question) => picked[question.id] === question.answer).length;
 
   function submit() {
@@ -54,7 +55,7 @@ function CheckpointPage() {
     addPoints(correct * 5);
     update((prev) => ({
       ...prev,
-      completedCheckpoints: { ...prev.completedCheckpoints, [concept.id]: correct },
+      completedCheckpoints: { ...prev.completedCheckpoints, [activeConcept.id]: correct },
     }));
   }
 
