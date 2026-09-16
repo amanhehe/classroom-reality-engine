@@ -1,287 +1,137 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  BookOpen,
-  BrainCircuit,
-  ChevronRight,
-  CircleUserRound,
-  Hand,
-  Home,
-  Library,
-  Mic,
-  MoreHorizontal,
-  Play,
-  Pause,
-  Send,
-  Settings,
-  Sparkles,
-  Square,
-  Volume2,
-  Waves,
-  X,
-} from "lucide-react";
-import classroomImage from "../assets/realistic-classroom.jpg";
-import { Button } from "../components/ui/button";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, ClipboardCheck, Play, Sparkles, TrendingUp } from "lucide-react";
+import { AppShell } from "../components/app-shell";
+import { ALL_CONCEPTS, MASTERY, PENDING_QUIZZES } from "../lib/aikyro-data";
+import { useLearner } from "../lib/learner-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AI KYRO | Live Classroom" },
-      { name: "description", content: "Join a realistic, interactive AI classroom and take part in a live lesson." },
-      { property: "og:title", content: "AI KYRO Live Classroom" },
-      { property: "og:description", content: "A realistic, interactive classroom for active learning." },
+      { title: "My Desk | AI KYRO" },
+      { name: "description", content: "Your learning desk: classes in progress, points earned, and quizzes waiting for you." },
+      { property: "og:title", content: "My Desk | AI KYRO" },
+      { property: "og:description", content: "Learn by taking part in a classroom discussion instead of reading answers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: DeskPage,
 });
 
-type Conversation = {
-  id: number;
-  name: string;
-  role: string;
-  message: string;
-  tone: "teacher" | "basic" | "advanced" | "learner";
-};
-
-const initialConversation: Conversation[] = [
-  { id: 1, name: "Ms. Rivera", role: "Teacher", message: "Why do you think energy changes form instead of disappearing?", tone: "teacher" },
-  { id: 2, name: "Maya", role: "Basic Student", message: "I think it transfers from one object to another.", tone: "basic" },
-  { id: 3, name: "Arjun", role: "Advanced Student", message: "The total energy in a closed system remains constant.", tone: "advanced" },
-];
-
-function Index() {
-  const [messages, setMessages] = useState(initialConversation);
-  const [answer, setAnswer] = useState("");
-  const [micOn, setMicOn] = useState(false);
-  const [reading, setReading] = useState(false);
-  const [activeNav, setActiveNav] = useState("classroom");
-  const [speakerIndex, setSpeakerIndex] = useState(0);
-  const [lessonPlaying, setLessonPlaying] = useState(false);
-  const speechSession = useRef(0);
-
-  const speaker = useMemo<Conversation>(
-    () => messages[speakerIndex] ?? messages[0] ?? {
-      id: 0,
-      name: "Ms. Rivera",
-      role: "Teacher",
-      message: "Welcome to class.",
-      tone: "teacher",
-    },
-    [messages, speakerIndex],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-    };
-  }, []);
-
-  function sendAnswer() {
-    const message = answer.trim();
-    if (!message) return;
-    setMessages((current) => [
-      ...current,
-      { id: Date.now(), name: "You", role: "Student", message, tone: "learner" },
-    ]);
-    setSpeakerIndex(messages.length);
-    setAnswer("");
-  }
-
-  function speakMessage(index: number, continueLesson = false) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const selected = messages[index];
-    if (!selected) return;
-    const session = speechSession.current;
-    window.speechSynthesis.cancel();
-    setSpeakerIndex(index);
-    setReading(true);
-    const utterance = new SpeechSynthesisUtterance(selected.message);
-    utterance.rate = selected.tone === "teacher" ? 0.92 : selected.tone === "advanced" ? 1.02 : 0.97;
-    utterance.pitch = selected.tone === "teacher" ? 1.08 : selected.tone === "basic" ? 1.18 : 0.94;
-    utterance.onend = () => {
-      if (speechSession.current !== session) return;
-      setReading(false);
-      if (continueLesson && index < messages.length - 1) {
-        window.setTimeout(() => speakMessage(index + 1, true), 450);
-      } else {
-        setLessonPlaying(false);
-      }
-    };
-    utterance.onerror = () => {
-      setReading(false);
-      setLessonPlaying(false);
-    };
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function toggleCurrentSpeech() {
-    if (reading) {
-      speechSession.current += 1;
-      window.speechSynthesis.cancel();
-      setReading(false);
-      setLessonPlaying(false);
-      return;
-    }
-    speechSession.current += 1;
-    speakMessage(speakerIndex);
-  }
-
-  function toggleLesson() {
-    if (lessonPlaying) {
-      speechSession.current += 1;
-      window.speechSynthesis.cancel();
-      setLessonPlaying(false);
-      setReading(false);
-      return;
-    }
-    speechSession.current += 1;
-    setLessonPlaying(true);
-    speakMessage(0, true);
-  }
+function DeskPage() {
+  const { state, ready } = useLearner();
+  const due = PENDING_QUIZZES.filter((quiz) => quiz.availableNow && !state.answeredQuizzes.includes(quiz.id));
+  const resume = ALL_CONCEPTS[0] ?? { id: "conservation_of_energy", name: "Conservation of Energy" };
+  const custom = state.customConcepts;
 
   return (
-    <main className="classroom-app">
-      <img
-        src={classroomImage}
-        alt="A teacher leading a sunlit classroom of students"
-        width={1920}
-        height={1080}
-        className="classroom-photo"
-      />
-      <div className="scene-shade" />
-      <div className="sun-wash" />
-      <div className="scene-depth" aria-hidden="true" />
-      <div className="dust-field" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
-
-      <nav className="side-rail" aria-label="Primary navigation">
-        <div className="brand-mark" aria-label="AI KYRO">K</div>
-        <div className="rail-divider" />
-        {[
-          { id: "home", label: "Home", Icon: Home },
-          { id: "classroom", label: "Classroom", Icon: BookOpen },
-          { id: "library", label: "Library", Icon: Library },
-          { id: "progress", label: "Progress", Icon: BrainCircuit },
-        ].map(({ id, label, Icon }) => (
-          <Button
-            key={id}
-            variant={activeNav === id ? "accent" : "ghost"}
-            size="icon"
-            className="rail-button"
-            onClick={() => setActiveNav(id)}
-            aria-label={label}
-            title={label}
-          >
-            <Icon size={18} />
-          </Button>
-        ))}
-        <div className="rail-spacer" />
-        <Button variant={activeNav === "settings" ? "accent" : "ghost"} size="icon" className="rail-button" onClick={() => setActiveNav("settings")} aria-label="Settings" title="Settings">
-          <Settings size={18} />
-        </Button>
-        <button className="student-avatar" aria-label="Student profile">K</button>
-      </nav>
-
-      <section className="lesson-stage" aria-label="Live classroom scene">
-        {activeNav !== "classroom" && (
-          <section className="nav-view glass-panel" aria-label={`${activeNav} view`}>
-            <header><div><small>AI KYRO</small><h2>{activeNav === "home" ? "Good morning, K" : activeNav === "library" ? "Lesson library" : activeNav === "progress" ? "Learning progress" : "Classroom settings"}</h2></div><Button variant="glass" size="icon" onClick={() => setActiveNav("classroom")} aria-label="Close view"><X size={18} /></Button></header>
-            {activeNav === "home" && <div className="nav-view-grid"><Button variant="glass" onClick={() => setActiveNav("classroom")}><strong>Resume live class</strong><span>Conservation of Energy · 12 students</span></Button><div><strong>Next lesson</strong><span>Forces and motion · Tomorrow, 10:00</span></div></div>}
-            {activeNav === "library" && <div className="nav-view-list">{["Energy & Work", "Forces & Motion", "Waves & Sound"].map((item, index) => <Button variant="glass" key={item}><span>0{index + 1}</span><strong>{item}</strong><small>{index + 4} lessons</small><ChevronRight size={17} /></Button>)}</div>}
-            {activeNav === "progress" && <div className="progress-view"><div className="progress-ring"><strong>82%</strong><span>mastery</span></div><div><strong>Physics foundations</strong><span>8 of 10 concepts complete</span><div className="progress-line"><i /></div></div></div>}
-            {activeNav === "settings" && <div className="settings-view"><label><span>Classroom voice<strong>Natural voices for each speaker</strong></span><input type="checkbox" defaultChecked /></label><label><span>Scene movement<strong>Camera, light, and atmosphere</strong></span><input type="checkbox" defaultChecked /></label><label><span>Live captions<strong>Show every spoken statement</strong></span><input type="checkbox" defaultChecked /></label></div>}
-          </section>
-        )}
-        <header className="lesson-header glass-panel">
-          <div className="live-dot"><span /></div>
+    <AppShell title="My Desk">
+      <div className="page-stack">
+        <section className="panel hero-panel">
           <div>
-            <p>LIVE CLASS · PHYSICS</p>
-            <h1>The Law of Conservation of Energy</h1>
+            <small>Welcome back</small>
+            <h2>Ready for class?</h2>
+            <p className="muted">
+              A teacher and two students will work through a concept with you — and you can interrupt any time.
+            </p>
+            <Link to="/classroom/$conceptId" params={{ conceptId: resume.id }} className="hero-cta">
+              <Play size={15} /> Enter class · {resume.name}
+            </Link>
           </div>
-          <span className="student-count">12 students</span>
-        </header>
-
-        <div className="speaker-pill glass-panel">
-          <Waves size={15} />
-          <span><strong>{speaker.name}</strong> is speaking</span>
-        </div>
-
-        <div className="teacher-caption glass-panel">
-          <span className="caption-avatar">MR</span>
-          <div>
-            <strong>{speaker.role}</strong>
-            <p>{speaker.message}</p>
+          <div className="stat-cluster">
+            <div>
+              <strong>{ready ? state.points : 120}</strong>
+              <span>points</span>
+            </div>
+            <div>
+              <strong>{ready ? state.askedQuestions.length : 0}</strong>
+              <span>questions asked</span>
+            </div>
+            <div>
+              <strong>{due.length}</strong>
+              <span>checks due</span>
+            </div>
           </div>
-          <div className="sound-bars" aria-hidden="true"><i /><i /><i /></div>
-        </div>
+        </section>
 
-        <div className="learner-marker">
-          <CircleUserRound size={16} />
-          <span>You</span>
-        </div>
-
-        <div className="lesson-controls glass-panel">
-          <Button variant={reading ? "accent" : "glass"} size="icon" onClick={toggleCurrentSpeech} aria-label={reading ? "Stop reading" : "Read current message aloud"} title={reading ? "Stop reading" : "Read aloud"}>
-            <Volume2 size={17} />
-          </Button>
-          <Button variant={micOn ? "accent" : "glass"} size="icon" onClick={() => setMicOn((value) => !value)} aria-label="Toggle microphone" title="Microphone">
-            {micOn ? <Square size={15} /> : <Mic size={17} />}
-          </Button>
-          <div className="timer-block">
-            <span>Your turn</span>
-            <strong>00:15</strong>
-          </div>
-          <div className="timer-track"><span /></div>
-          <Button variant={lessonPlaying ? "accent" : "glass"} size="icon" onClick={toggleLesson} aria-label={lessonPlaying ? "Pause lesson" : "Play lesson from beginning"} title={lessonPlaying ? "Pause lesson" : "Play lesson"}>{lessonPlaying ? <Pause size={16} /> : <Play size={16} />}</Button>
-        </div>
-      </section>
-
-      <aside className="conversation-panel">
-        <header className="conversation-header">
-          <div className="conversation-brand"><span><Sparkles size={16} /></span><div><strong>Class conversation</strong><small>AI KYRO · live transcript</small></div></div>
-          <Button variant="ghost" size="icon" aria-label="More conversation options"><MoreHorizontal size={18} /></Button>
-        </header>
-
-        <div className="conversation-list" aria-live="polite">
-          {messages.map((message, index) => (
-            <article key={message.id} className={`conversation-message tone-${message.tone} ${index === speakerIndex ? "current" : ""}`}>
-              <div className="message-avatar">{message.name.slice(0, 1)}</div>
+        <div className="two-col">
+          <section className="panel">
+            <header className="panel-head">
+              <span className="panel-icon">
+                <TrendingUp size={18} />
+              </span>
               <div>
-                <header><strong>{message.name}</strong><span>{message.role}</span><time>Now</time></header>
-                <p>{message.message}</p>
+                <h2>In progress</h2>
+                <p className="muted">Pick up where the class left off.</p>
               </div>
-              <Button variant="ghost" size="icon" className="message-audio" onClick={() => { speechSession.current += 1; speakMessage(index); }} aria-label={`Hear ${message.name}'s statement`} title={`Hear ${message.name}`}><Volume2 size={15} /></Button>
-            </article>
-          ))}
+            </header>
+            <div className="mini-list">
+              {MASTERY.map((item) => (
+                <Link key={item.conceptId} to="/classroom/$conceptId" params={{ conceptId: item.conceptId }} className="mini-row">
+                  <span>{item.name}</span>
+                  <div className="mini-bar">
+                    <i style={{ width: `${item.score}%` }} />
+                  </div>
+                  <ArrowRight size={14} />
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel">
+            <header className="panel-head">
+              <span className="panel-icon">
+                <ClipboardCheck size={18} />
+              </span>
+              <div>
+                <h2>Waiting for you</h2>
+                <p className="muted">Delayed checks are where real retention shows.</p>
+              </div>
+            </header>
+            {due.length === 0 ? (
+              <p className="muted">Nothing due right now.</p>
+            ) : (
+              <div className="mini-list">
+                {due.map((quiz) => (
+                  <Link key={quiz.id} to="/quizzes" className="mini-row">
+                    <span>{quiz.conceptName}</span>
+                    <em>{quiz.dueIn}</em>
+                    <ArrowRight size={14} />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
-        <div className="answer-area">
-          <div className="answer-label"><span><Hand size={14} /> It’s your turn</span><strong>00:15</strong></div>
-          <div className="answer-input">
-            <textarea
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  sendAnswer();
-                }
-              }}
-              placeholder={micOn ? "Listening…" : "Type your answer…"}
-              aria-label="Your answer"
-              rows={2}
-            />
-            <Button variant="accent" size="icon" onClick={sendAnswer} disabled={!answer.trim()} aria-label="Send answer"><Send size={17} /></Button>
-          </div>
-          <p className="turn-note"><Sparkles size={12} /> Take a moment to think before you respond.</p>
-        </div>
-      </aside>
-
-      <button className="continue-prompt glass-panel">
-        <span>Keep going</span>
-        <ChevronRight size={16} />
-      </button>
-    </main>
+        <section className="panel">
+          <header className="panel-head">
+            <span className="panel-icon">
+              <Sparkles size={18} />
+            </span>
+            <div>
+              <h2>Your own topics</h2>
+              <p className="muted">Type any topic and a full class is built for it.</p>
+            </div>
+            <Link to="/library" className="head-link">
+              Create one <ArrowRight size={14} />
+            </Link>
+          </header>
+          {custom.length === 0 ? (
+            <p className="muted">No topics of your own yet.</p>
+          ) : (
+            <div className="mini-list">
+              {custom.map((concept) => (
+                <Link key={concept.id} to="/classroom/$conceptId" params={{ conceptId: concept.id }} className="mini-row">
+                  <span>{concept.name}</span>
+                  <em>yours</em>
+                  <ArrowRight size={14} />
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </AppShell>
   );
 }
