@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 function DeskPage() {
   const { state, ready } = useLearner();
   const due = PENDING_QUIZZES.filter((quiz) => quiz.availableNow && !state.answeredQuizzes.includes(quiz.id));
-  const resume = ALL_CONCEPTS[0];
+  const resume = ALL_CONCEPTS[0] ?? { id: "conservation_of_energy", name: "Conservation of Energy" };
   const custom = state.customConcepts;
 
   return (
