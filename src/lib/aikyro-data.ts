@@ -17,8 +17,8 @@ export type Turn = {
   type: "dialogue" | "hint" | "blank";
   content: string;
   /** For blank turns: the expected idea, revealed after a guess. */
-  answer?: string;
-  hint?: string;
+  answer?: string | undefined;
+  hint?: string | undefined;
 };
 
 export type CheckpointQuestion = {
