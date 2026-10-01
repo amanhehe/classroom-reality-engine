@@ -9,3 +9,4 @@
 - [ ] AI: create your own module/topic — generated dialogue, blanks and checkpoint
 - [ ] Checkpoint + teach-back pages
 - [ ] My Desk dashboard (in-progress topics, points, pending quizzes)
+- [ ] Review https://classroom-journey.lovable.app and fold its best frontend ideas in
