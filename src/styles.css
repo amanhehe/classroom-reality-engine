@@ -594,3 +594,4 @@ body { background: var(--background); color: var(--foreground); }
 .blackboard { background: oklch(0.32 0.07 160 / 0.9); border: 6px solid oklch(0.5 0.08 55); }
 .blackboard p { font-size: 1.35rem; }
 .stage-bubble strong { color: var(--accent); }
+input, textarea { background: oklch(1 0 0 / 0.85); color: var(--foreground); }
