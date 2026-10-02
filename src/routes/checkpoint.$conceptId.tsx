@@ -103,7 +103,10 @@ function CheckpointPage() {
               <p>
                 {score} of {questions.length} correct · +{score * 5} points
               </p>
-              <Link to="/progress" className="finish-link">
+              <Link to="/teachback/$conceptId" params={{ conceptId: activeConcept.id }} className="finish-link">
+                Now teach it back
+              </Link>
+              <Link to="/progress" className="inline-link">
                 See your report card
               </Link>
             </div>
