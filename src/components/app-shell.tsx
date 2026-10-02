@@ -5,12 +5,15 @@ import {
   HelpCircle,
   Info,
   LayoutDashboard,
+  Menu,
   Settings,
   Sparkles,
   Sun,
   TrendingUp,
+  X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { Button } from "./ui/button";
 
 const NAV = [
   { to: "/", label: "My Desk", Icon: LayoutDashboard },
@@ -22,10 +25,12 @@ const NAV = [
 
 export function AppShell({ title, children }: { title: string; children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="app-shell">
-      <aside className="shell-sidebar">
+      {menuOpen && <div className="shell-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      <aside className={`shell-sidebar ${menuOpen ? "open" : ""}`}>
         <Link to="/" className="shell-brand">
           <span className="shell-brand-mark">
             <Sun size={20} />
@@ -50,7 +55,7 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
           {NAV.map(({ to, label, Icon }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
-              <Link key={to} to={to} className={`shell-link ${active ? "active" : ""}`}>
+              <Link key={to} to={to} onClick={() => setMenuOpen(false)} className={`shell-link ${active ? "active" : ""}`}>
                 <Icon size={17} />
                 {label}
               </Link>
@@ -68,10 +73,10 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
         </div>
 
         <div className="shell-footer-links">
-          <Link to="/settings" className={`shell-link ${pathname.startsWith("/settings") ? "active" : ""}`}>
+          <Link to="/settings" onClick={() => setMenuOpen(false)} className={`shell-link ${pathname.startsWith("/settings") ? "active" : ""}`}>
             <Settings size={17} /> Settings
           </Link>
-          <Link to="/about" className={`shell-link ${pathname.startsWith("/about") ? "active" : ""}`}>
+          <Link to="/about" onClick={() => setMenuOpen(false)} className={`shell-link ${pathname.startsWith("/about") ? "active" : ""}`}>
             <Info size={17} /> About
           </Link>
         </div>
@@ -80,6 +85,16 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
       <div className="shell-main">
         <header className="shell-header">
           <div className="shell-title">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shell-menu-button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            </Button>
             <span>
               <Sun size={14} />
             </span>
