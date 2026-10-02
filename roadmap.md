@@ -7,5 +7,5 @@
 - [x] AI: create your own topic — generated dialogue, blank and checkpoint
 - [x] Checkpoint page
 - [x] Warm chalkboard look from classroom-journey reference
-- [ ] Teach-back screen (explain the idea aloud) — next
+- [x] Teach-back screen (explain the idea aloud)
 - [ ] Sign-in and saving progress across devices (needs Lovable Cloud)
