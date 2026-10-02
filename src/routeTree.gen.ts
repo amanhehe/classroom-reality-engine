@@ -18,6 +18,7 @@ import { Route as QuizzesRouteImport } from './routes/quizzes'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CheckpointConceptIdRouteImport } from './routes/checkpoint.$conceptId'
 import { Route as ClassroomConceptIdRouteImport } from './routes/classroom.$conceptId'
+import { Route as TeachbackConceptIdRouteImport } from './routes/teachback.$conceptId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const ClassroomConceptIdRoute = ClassroomConceptIdRouteImport.update({
   path: '/classroom/$conceptId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeachbackConceptIdRoute = TeachbackConceptIdRouteImport.update({
+  id: '/teachback/$conceptId',
+  path: '/teachback/$conceptId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/checkpoint/$conceptId': typeof CheckpointConceptIdRoute
   '/classroom/$conceptId': typeof ClassroomConceptIdRoute
+  '/teachback/$conceptId': typeof TeachbackConceptIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/checkpoint/$conceptId': typeof CheckpointConceptIdRoute
   '/classroom/$conceptId': typeof ClassroomConceptIdRoute
+  '/teachback/$conceptId': typeof TeachbackConceptIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/checkpoint/$conceptId': typeof CheckpointConceptIdRoute
   '/classroom/$conceptId': typeof ClassroomConceptIdRoute
+  '/teachback/$conceptId': typeof TeachbackConceptIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/checkpoint/$conceptId'
     | '/classroom/$conceptId'
+    | '/teachback/$conceptId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/checkpoint/$conceptId'
     | '/classroom/$conceptId'
+    | '/teachback/$conceptId'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/checkpoint/$conceptId'
     | '/classroom/$conceptId'
+    | '/teachback/$conceptId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   CheckpointConceptIdRoute: typeof CheckpointConceptIdRoute
   ClassroomConceptIdRoute: typeof ClassroomConceptIdRoute
+  TeachbackConceptIdRoute: typeof TeachbackConceptIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassroomConceptIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teachback/$conceptId': {
+      id: '/teachback/$conceptId'
+      path: '/teachback/$conceptId'
+      fullPath: '/teachback/$conceptId'
+      preLoaderRoute: typeof TeachbackConceptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   CheckpointConceptIdRoute: CheckpointConceptIdRoute,
   ClassroomConceptIdRoute: ClassroomConceptIdRoute,
+  TeachbackConceptIdRoute: TeachbackConceptIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
