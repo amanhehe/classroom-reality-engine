@@ -8,4 +8,5 @@
 - [x] Checkpoint page
 - [x] Warm chalkboard look from classroom-journey reference
 - [x] Teach-back screen (explain the idea aloud)
+- [x] Optimize navigation, classroom realism, and small-screen layout
 - [ ] Sign-in and saving progress across devices (needs Lovable Cloud)

@@ -262,9 +262,10 @@ function ClassroomPage() {
           <div className="figures">
             {(["teacher", "basic_student", "advanced_student", "learner"] as Speaker[]).map((who) => (
               <div key={who} className={`figure figure-${who} ${active === who ? "speaking" : ""}`}>
-                <span className="figure-head" />
-                <span className="figure-body" />
-                <span className="figure-label">{SPEAKER_META[who].label}</span>
+                <span className="figure-focus" aria-hidden="true" />
+                <span className="figure-label">
+                  <i /> {SPEAKER_META[who].label}
+                </span>
                 {active === who && (
                   <span className="figure-bars" aria-hidden="true">
                     <i />
@@ -278,7 +279,10 @@ function ClassroomPage() {
 
           {lines.length > 0 && (
             <div className={`stage-bubble bubble-${active}`} aria-live="polite">
-              <strong>{SPEAKER_META[active].label}</strong>
+              <div>
+                <strong>{SPEAKER_META[active].label}</strong>
+                <span>speaking now</span>
+              </div>
               <p>{[...lines].reverse().find((line) => line.speaker === active)?.text ?? ""}</p>
             </div>
           )}
