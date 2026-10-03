@@ -444,9 +444,9 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
 .check-option.wrong { border-color: var(--destructive); color: var(--destructive); }
 
 /* ---------- Classroom ---------- */
-.classroom-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 1.15rem; align-items: stretch; min-height: calc(100svh - 7.5rem); }
+.classroom-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 1.15rem; align-items: stretch; }
 .stage {
-  position: relative; border-radius: 18px; overflow: hidden; min-height: min(720px, calc(100svh - 7.5rem));
+  position: relative; border-radius: 18px; overflow: hidden; height: clamp(560px, calc(100svh - 7.5rem), 720px);
   border: 1px solid var(--glass-border);
 }
 .stage-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: camera-breathe 26s ease-in-out infinite; }
@@ -502,7 +502,7 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
 .stage-progress { margin-left: auto; font-size: 0.75rem; color: var(--overlay-muted); }
 
 .class-panel {
-  display: flex; flex-direction: column; gap: 0.8rem; padding: 1rem; border-radius: 18px; height: min(720px, calc(100svh - 7.5rem)); min-height: 560px;
+  display: flex; flex-direction: column; gap: 0.8rem; padding: 1rem; border-radius: 18px; height: clamp(560px, calc(100svh - 7.5rem), 720px);
   background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(14px);
 }
 .class-panel > header { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
@@ -530,8 +530,7 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
 
 @media (max-width: 1080px) {
   .classroom-grid, .two-col, .option-row { grid-template-columns: 1fr; display: grid; }
-  .classroom-grid { min-height: 0; }
-  .stage { min-height: 560px; }
+  .stage { height: 560px; }
   .class-panel { height: auto; min-height: 520px; }
 }
 @media (max-width: 860px) {
@@ -557,7 +556,7 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
   .hero-cta { width: 100%; justify-content: center; border-radius: 10px; }
   .stat-cluster { width: 100%; justify-content: space-between; gap: .5rem; }
   .classroom-grid { gap: .75rem; }
-  .stage { min-height: 540px; border-radius: 14px; }
+  .stage { height: 540px; border-radius: 14px; }
   .blackboard { top: .7rem; left: .7rem; right: .7rem; padding: .65rem .75rem; border-width: 4px; }
   .blackboard p { font-size: 1.05rem; }
   .figure-teacher { top: 38%; left: 49%; }
