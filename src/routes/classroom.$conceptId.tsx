@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Hand, Lightbulb, Mic, Pause, Play, Send, Volume2 } from "lucide-react";
-import classroomImage from "../assets/realistic-classroom.jpg";
+import { ArrowRight, BookOpen, Hand, Lightbulb, Mic, Pause, Play, Send, Sparkles, Volume2 } from "lucide-react";
 import { AppShell } from "../components/app-shell";
 import { Button } from "../components/ui/button";
 import { findConcept, SPEAKER_META, type Concept, type Speaker, type Turn } from "../lib/aikyro-data";
@@ -248,151 +247,128 @@ function ClassroomPage() {
 
   return (
     <AppShell title={concept.name}>
-      <div className="classroom-grid">
-        <section className="stage" aria-label="Classroom scene">
-          <img src={classroomImage} alt="A sunlit classroom" className="stage-photo" width={1920} height={1080} />
-          <div className="stage-shade" />
-          <div className="stage-sun" />
-
-          <div className="blackboard">
-            <small>On the board</small>
-            <p>{concept.boardText}</p>
+      <div className="classroom-workspace">
+        <section className="learning-strip" aria-label="Current lesson">
+          <div className="learning-strip-icon"><BookOpen size={18} /></div>
+          <div className="learning-strip-copy">
+            <small>Now learning</small>
+            <strong>{concept.moduleName}</strong>
+            <span>{concept.name} · Interactive discussion</span>
           </div>
-
-          <div className="figures">
-            {(["teacher", "basic_student", "advanced_student", "learner"] as Speaker[]).map((who) => (
-              <div key={who} className={`figure figure-${who} ${active === who ? "speaking" : ""}`}>
-                <span className="figure-focus" aria-hidden="true" />
-                <span className="figure-label">
-                  <i /> {SPEAKER_META[who].label}
-                </span>
-                {active === who && (
-                  <span className="figure-bars" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {lines.length > 0 && (
-            <div className={`stage-bubble bubble-${active}`} aria-live="polite">
-              <div>
-                <strong>{SPEAKER_META[active].label}</strong>
-                <span>speaking now</span>
-              </div>
-              <p>{[...lines].reverse().find((line) => line.speaker === active)?.text ?? ""}</p>
-            </div>
-          )}
-
-          <div className="stage-controls">
-            <Button variant={playing ? "accent" : "glass"} size="icon" onClick={togglePlay} aria-label={playing ? "Pause the class" : "Play the class"}>
-              {playing ? <Pause size={16} /> : <Play size={16} />}
+          <div className="learning-strip-meta">
+            <span>Room 617</span>
+            <Button variant="outline" size="sm" onClick={() => currentTurn && speak(currentTurn.speaker, currentTurn.content)} disabled={!currentTurn}>
+              <Volume2 size={14} /> Read aloud
             </Button>
-            <Button variant="glass" onClick={() => advance()} disabled={done || playing}>
-              Next turn <ArrowRight size={14} />
-            </Button>
-            <span className="stage-progress">
-              Turn {Math.min(step + (done ? 0 : 1), turns.length)} of {turns.length}
-            </span>
           </div>
         </section>
 
-        <aside className="class-panel" aria-label="Class conversation">
-          <header>
-            <div>
-              <strong>Class conversation</strong>
-              <small>{concept.name}</small>
-            </div>
-            <span className="points-pill">{ready ? state.points : 120} pts</span>
-          </header>
+        <div className="lesson-workbench">
+          <section className="lesson-board" aria-label="Live class">
+            <header className="lesson-board-head">
+              <div>
+                <small>Live class</small>
+                <h2>{concept.name}</h2>
+                <span><Sparkles size={12} /> Teacher-led discussion</span>
+              </div>
+              <span className="live-class-pill"><i /> Live</span>
+            </header>
 
-          <div className="class-lines" ref={listRef}>
-            {lines.length === 0 && <p className="muted">Press play — the teacher will begin.</p>}
-            {lines.map((line) => (
-              <article key={line.id} className={`class-line line-${line.speaker}`}>
-                <span className="line-avatar">{SPEAKER_META[line.speaker].label.slice(0, 1)}</span>
-                <div>
-                  <header>
-                    <strong>{SPEAKER_META[line.speaker].label}</strong>
-                    {line.kind === "hint" && (
-                      <em>
-                        <Lightbulb size={12} /> hint
-                      </em>
-                    )}
-                  </header>
-                  <p>{line.text}</p>
+            <div className="board-canvas">
+              <div className="board-topic">
+                <small>On the board</small>
+                <p>{concept.boardText}</p>
+              </div>
+
+              <div className={`speaker-card speaker-${active}`} aria-live="polite">
+                <div className="speaker-portrait" aria-hidden="true">
+                  <span>{SPEAKER_META[active].label.slice(0, 1)}</span>
+                  {playing && <i />}
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => speak(line.speaker, line.text)} aria-label={`Hear ${SPEAKER_META[line.speaker].label}`}>
-                  <Volume2 size={14} />
-                </Button>
-              </article>
-            ))}
-          </div>
-
-          {currentTurn?.type === "blank" && !revealed && (
-            <div className="blank-box">
-              <p>
-                <Hand size={13} /> Fill the blank before the class moves on.
-              </p>
-              <div className="blank-row">
-                <input
-                  value={guess}
-                  onChange={(event) => setGuess(event.target.value)}
-                  onKeyDown={(event) => event.key === "Enter" && submitGuess()}
-                  placeholder="Your best guess…"
-                  aria-label="Your guess"
-                />
-                <Button variant="accent" onClick={submitGuess} disabled={!guess.trim()}>
-                  Commit
-                </Button>
+                <div>
+                  <span className="speaker-role">{SPEAKER_META[active].label}</span>
+                  <strong>{lines.length > 0 ? "Speaking" : "Ready to begin"}</strong>
+                </div>
+                {playing && <div className="speaker-wave" aria-hidden="true"><i /><i /><i /></div>}
               </div>
-              <button className="hint-toggle" onClick={() => setHintShown(true)} disabled={hintShown}>
-                <Lightbulb size={13} /> {hintShown ? currentTurn.hint : "Show a hint"}
-              </button>
-            </div>
-          )}
 
-          {done && (
-            <div className="finish-box">
-              <p>Class complete. Now prove it stuck.</p>
-              <Link to="/checkpoint/$conceptId" params={{ conceptId: concept.id }} className="finish-link">
-                Go to the checkpoint <ArrowRight size={14} />
-              </Link>
+              <blockquote>
+                {lines.length > 0
+                  ? [...lines].reverse().find((line) => line.speaker === active)?.text
+                  : "Press play and listen to the class work through the idea together."}
+              </blockquote>
             </div>
-          )}
 
-          <div className="ask-box">
-            <label htmlFor="ask">Ask as the third student</label>
-            <div className="ask-row">
-              <textarea
-                id="ask"
-                rows={2}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    void ask();
-                  }
-                }}
-                placeholder={listening ? "Listening…" : "Anything at all — even the obvious question"}
-              />
-              <div className="ask-actions">
-                <Button variant={listening ? "accent" : "glass"} size="icon" onClick={startListening} aria-label="Ask by speaking">
-                  <Mic size={15} />
-                </Button>
-                <Button variant="accent" size="icon" onClick={() => void ask()} disabled={asking || !question.trim()} aria-label="Send question">
-                  <Send size={15} />
-                </Button>
+            <footer className="lesson-board-controls">
+              <Button variant={playing ? "accent" : "outline"} size="icon" onClick={togglePlay} aria-label={playing ? "Pause the class" : "Play the class"}>
+                {playing ? <Pause size={16} /> : <Play size={16} />}
+              </Button>
+              <Button variant="outline" onClick={() => advance()} disabled={done || playing}>
+                Next turn <ArrowRight size={14} />
+              </Button>
+              <div className="turn-meter"><span style={{ width: `${turns.length ? (Math.min(step, turns.length) / turns.length) * 100 : 0}%` }} /></div>
+              <span>Discussion · {Math.min(step + (done ? 0 : 1), turns.length)} of {turns.length}</span>
+            </footer>
+          </section>
+
+          <aside className="transcript-panel" aria-label="Class transcript">
+            <header>
+              <div><small>Class transcript</small><strong>Follow the discussion</strong></div>
+              <span className="transcript-live"><i /> Live</span>
+            </header>
+
+            <div className="transcript-lines" ref={listRef}>
+              {lines.length === 0 && (
+                <div className="transcript-empty"><Play size={18} /><strong>The class is ready</strong><span>Press play to begin the discussion.</span></div>
+              )}
+              {lines.map((line) => (
+                <article key={line.id} className={`transcript-line line-${line.speaker} ${active === line.speaker ? "active" : ""}`}>
+                  <span className="line-avatar">{SPEAKER_META[line.speaker].label.slice(0, 1)}</span>
+                  <div>
+                    <header><strong>{SPEAKER_META[line.speaker].label}</strong>{line.kind === "hint" && <em><Lightbulb size={12} /> hint</em>}</header>
+                    <p>{line.text}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => speak(line.speaker, line.text)} aria-label={`Hear ${SPEAKER_META[line.speaker].label}`}><Volume2 size={14} /></Button>
+                </article>
+              ))}
+            </div>
+
+            {currentTurn?.type === "blank" && !revealed && (
+              <div className="response-box">
+                <small>Your guess, before the answer</small>
+                <p><Hand size={13} /> Commit a first thought before the discussion moves on.</p>
+                <div className="blank-row">
+                  <input value={guess} onChange={(event) => setGuess(event.target.value)} onKeyDown={(event) => event.key === "Enter" && submitGuess()} placeholder="Your best guess…" aria-label="Your guess" />
+                  <Button variant="accent" onClick={submitGuess} disabled={!guess.trim()}>Commit</Button>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setHintShown(true)} disabled={hintShown}><Lightbulb size={13} /> {hintShown ? currentTurn.hint : "Hint"}</Button>
               </div>
+            )}
+
+            {done && <div className="finish-box"><p>Class complete. Now prove it stuck.</p><Link to="/checkpoint/$conceptId" params={{ conceptId: concept.id }} className="finish-link">Go to the checkpoint <ArrowRight size={14} /></Link></div>}
+
+            <div className="class-question-box">
+              <label htmlFor="ask">Ask the teacher</label>
+              <div className="ask-row">
+                <textarea id="ask" rows={2} value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void ask(); } }} placeholder={listening ? "Listening…" : "Challenge an idea or ask anything"} />
+                <div className="ask-actions">
+                  <Button variant={listening ? "accent" : "outline"} size="icon" onClick={startListening} aria-label="Ask by speaking"><Mic size={15} /></Button>
+                  <Button variant="accent" size="icon" onClick={() => void ask()} disabled={asking || !question.trim()} aria-label="Send question"><Send size={15} /></Button>
+                </div>
+              </div>
+              {asking && <p className="muted">The teacher is thinking…</p>}
+              {aiError && <p className="error-note">{aiError}</p>}
             </div>
-            {asking && <p className="muted">The teacher is thinking…</p>}
-            {aiError && <p className="error-note">{aiError}</p>}
-          </div>
-        </aside>
+          </aside>
+        </div>
+
+        <section className="classroom-sequence" aria-label="Lesson sequence">
+          {turns.slice(0, 5).map((turn, index) => (
+            <div key={turn.id} className={index < step ? "complete" : index === step ? "current" : ""}>
+              <span>{index + 1}</span><div><strong>{turn.type === "blank" ? "Your prediction" : SPEAKER_META[turn.speaker].label}</strong><small>{turn.type === "hint" ? "Use a hint" : turn.type === "blank" ? "Think and commit" : "Follow the reasoning"}</small></div>
+            </div>
+          ))}
+        </section>
       </div>
     </AppShell>
   );
