@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, BookOpen, Hand, Lightbulb, Mic, Pause, Play, Send, Sparkles, Volume2 } from "lucide-react";
 import { AppShell } from "../components/app-shell";
 import { Button } from "../components/ui/button";
-import { findConcept, SPEAKER_META, type Concept, type Speaker, type Turn } from "../lib/aikyro-data";
+import { findConcept, MODULES, SPEAKER_META, type Concept, type Speaker, type Turn } from "../lib/aikyro-data";
 import { askTheClass } from "../lib/ai.functions";
 import { useLearner } from "../lib/learner-store";
 
@@ -57,6 +57,7 @@ function ClassroomPage() {
 
   const turns = concept?.turns ?? [];
   const currentTurn = turns[step];
+  const moduleName = MODULES.find((module) => module.concepts.some((item) => item.id === conceptId))?.name ?? "Your own topic";
 
   const speak = useCallback(
     (speaker: Speaker, text: string, onDone?: () => void) => {
@@ -252,7 +253,7 @@ function ClassroomPage() {
           <div className="learning-strip-icon"><BookOpen size={18} /></div>
           <div className="learning-strip-copy">
             <small>Now learning</small>
-            <strong>{concept.moduleName}</strong>
+            <strong>{moduleName}</strong>
             <span>{concept.name} · Interactive discussion</span>
           </div>
           <div className="learning-strip-meta">
@@ -306,7 +307,7 @@ function ClassroomPage() {
               <Button variant="outline" onClick={() => advance()} disabled={done || playing}>
                 Next turn <ArrowRight size={14} />
               </Button>
-              <div className="turn-meter"><span style={{ width: `${turns.length ? (Math.min(step, turns.length) / turns.length) * 100 : 0}%` }} /></div>
+              <progress className="turn-meter" max={turns.length || 1} value={Math.min(step, turns.length)} aria-label="Lesson progress" />
               <span>Discussion · {Math.min(step + (done ? 0 : 1), turns.length)} of {turns.length}</span>
             </footer>
           </section>
