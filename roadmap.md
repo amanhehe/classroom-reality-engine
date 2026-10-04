@@ -9,4 +9,5 @@
 - [x] Warm chalkboard look from classroom-journey reference
 - [x] Teach-back screen (explain the idea aloud)
 - [x] Optimize navigation, classroom realism, and small-screen layout
+- [x] Replace the classroom photo with the reference site's lesson-and-transcript format
 - [ ] Sign-in and saving progress across devices (needs Lovable Cloud)
